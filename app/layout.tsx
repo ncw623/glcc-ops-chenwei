@@ -1,5 +1,5 @@
 import './globals.css'
-import Nav from './_components/Nav'
+import SideBar from './_components/SideBar'
 import ConnStatus from './_components/ConnStatus'
 
 export const metadata = {
@@ -7,16 +7,18 @@ export const metadata = {
   description: 'GLCC Starter — your business in one place',
 }
 
+// Ensures phones render at device width (no auto-zoom, mobile-friendly scaling).
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
         <div className="app">
-          <aside className="side">
-            <div className="brand"><span className="logo" aria-hidden="true" /> Your AI HQ</div>
-            <Nav />
-            <p className="hint">One <code>records</code> table behind all 8 tabs.</p>
-          </aside>
+          <SideBar />
           <main className="main"><ConnStatus />{children}</main>
         </div>
       </body>
