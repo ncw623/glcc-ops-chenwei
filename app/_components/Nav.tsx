@@ -1,24 +1,24 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { TABS } from '@/lib/tabs'
 
-// Add a tab? Add one line here + a matching app/<name>/page.tsx. That's it.
-const TABS = [
-  { href: '/', label: 'Dashboard' },
-  { href: '/pipeline', label: 'Pipeline' },
-  { href: '/money', label: 'Money' },
-  { href: '/tasks', label: 'Tasks' },
-  { href: '/projects', label: 'Projects' },
-  { href: '/contacts', label: 'Contacts' },
-  { href: '/content', label: 'Content' },
-  { href: '/agents', label: 'Agents' },
-]
-
-export default function Nav({ onNavigate }: { onNavigate?: () => void }) {
+// Renders only the tabs this user is allowed to see. This is the FIRST of two
+// enforcement points — the server-side requireTab() guard on each page is the
+// one that actually blocks direct-URL access.
+export default function Nav({
+  allowedTabs,
+  onNavigate,
+}: {
+  allowedTabs: string[]
+  onNavigate?: () => void
+}) {
   const path = usePathname()
+  const visible = TABS.filter(t => allowedTabs.includes(t.key))
+
   return (
     <nav className="nav">
-      {TABS.map(t => (
+      {visible.map(t => (
         <Link
           key={t.href}
           href={t.href}

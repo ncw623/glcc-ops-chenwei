@@ -1,10 +1,12 @@
 import { getRecords, rm, STILL_OPEN, DEAL_CATS } from '@/lib/records'
 import Empty from '@/app/_components/Empty'
+import { requireTab } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
 // Your money: leads + invoices that carry a value.
 export default async function Money() {
+  await requireTab('money')
   const all = await getRecords()
   const rows = all.filter(r => Number(r.amount) > 0 && r.category && DEAL_CATS.includes(r.category))
   const outstanding = rows.filter(r => STILL_OPEN.includes(r.status)).reduce((s, r) => s + Number(r.amount), 0)

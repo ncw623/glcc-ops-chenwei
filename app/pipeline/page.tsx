@@ -1,5 +1,6 @@
 import { getRecords, rm, DEAL_CATS } from '@/lib/records'
 import Empty from '@/app/_components/Empty'
+import { requireTab } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -7,6 +8,7 @@ export const dynamic = 'force-dynamic'
 const STAGES = ['open', 'new', 'contacted', 'pending', 'won', 'done', 'lost']
 
 export default async function Pipeline() {
+  await requireTab('pipeline')
   const all = await getRecords()
   const rows = all.filter(r => r.category && DEAL_CATS.includes(r.category))
   const stages = STAGES.filter(st => rows.some(r => r.status === st))
