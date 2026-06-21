@@ -1,6 +1,5 @@
 import { getRecords, rm } from '@/lib/records'
 import Empty from '@/app/_components/Empty'
-import { requireTab } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,7 +14,6 @@ const orders = (r: { meta?: Record<string, any> }) =>
   Number(r.meta?.new_order || 0) + Number(r.meta?.repeat_order || 0)
 
 export default async function AdsReport() {
-  await requireTab('ads')
   const all = await getRecords()
   // Newest day first.
   const rows = all

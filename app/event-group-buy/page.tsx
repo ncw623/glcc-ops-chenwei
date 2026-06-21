@@ -1,13 +1,11 @@
 import { getRecords, rm, m } from '@/lib/records'
 import Empty from '@/app/_components/Empty'
-import { requireTab } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
 // Group-buy events. category === 'groupbuy'. Extra fields (unit price, order
 // count, host) live in `meta`. `amount` holds the revenue collected so far.
 export default async function EventGroupBuy() {
-  await requireTab('groupbuy')
   const all = await getRecords()
   const rows = all
     .filter(r => r.category === 'groupbuy')

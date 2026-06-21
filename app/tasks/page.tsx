@@ -1,13 +1,11 @@
 import { getRecords, todayISO, NEW_CATS } from '@/lib/records'
 import Empty from '@/app/_components/Empty'
-import { requireTab } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
 // Anything with a due date (leads, invoices, tasks, posts), soonest first.
 // Projects/Contacts/Content have their own tabs, so we keep them out of here.
 export default async function Tasks() {
-  await requireTab('tasks')
   const today = todayISO()
   const all = await getRecords()
   const rows = all

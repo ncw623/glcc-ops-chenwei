@@ -1,12 +1,10 @@
 import { getRecords, m } from '@/lib/records'
 import Empty from '@/app/_components/Empty'
-import { requireTab } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
 // A lightweight CRM. category === 'contact'. Extra fields live in `meta`.
 export default async function Contacts() {
-  await requireTab('contacts')
   const all = await getRecords()
   const rows = all.filter(r => r.category === 'contact')
 
