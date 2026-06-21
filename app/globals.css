@@ -388,3 +388,11 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0
 @media (max-width: 768px) {
   .admin-chip { min-height: 40px; padding: 8px 14px; }
 }
+
+/* ============================================================
+   MARKETING — wide table with horizontal scroll.
+   ============================================================ */
+.mkt-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; padding: 0 4px; }
+.mkt-tbl { min-width: 820px; }
+.mkt-tbl td, .mkt-tbl th { white-space: nowrap; }
+.mkt-tbl tfoot td { border-top: 2px solid var(--border); background: var(--surface2); }
