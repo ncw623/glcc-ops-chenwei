@@ -2,8 +2,11 @@ import Anthropic from '@anthropic-ai/sdk'
 import { sendMessage } from '@/lib/telegram'
 import { loadTurns, appendTurn } from '@/lib/bot-memory'
 import { getRecords } from '@/lib/records'
+import { transcribeTelegramVoice } from '@/lib/transcribe'
 
+export const runtime = 'nodejs'         // fetch download + Groq + Claude
 export const dynamic = 'force-dynamic'
+export const maxDuration = 30           // voice note adds a download + transcribe step
 
 const ALLOWED = (process.env.TELEGRAM_ALLOWED_USER_IDS || '').split(',').map(s => s.trim()).filter(Boolean)
 
@@ -14,6 +17,7 @@ export async function GET() {
     ok: true,
     botTokenSet: !!process.env.TELEGRAM_BOT_TOKEN,
     webhookSecretSet: !!process.env.TELEGRAM_WEBHOOK_SECRET,
+    sttKeySet: !!process.env.GROQ_API_KEY,   // voice notes need this
     allowedUsers: ALLOWED.length,
   })
 }
@@ -26,7 +30,7 @@ export async function POST(req: Request) {
 
   const update = await req.json().catch(() => ({}))
   const msg = update.message
-  if (!msg?.text) return Response.json({ ok: true })
+  if (!msg) return Response.json({ ok: true })
   const chatId = msg.chat.id
 
   // Only the owner(s) can talk to the bot. Fail CLOSED: an empty allowlist means
@@ -36,16 +40,36 @@ export async function POST(req: Request) {
     return Response.json({ ok: true })
   }
 
-  if (msg.text.trim().toLowerCase() === '/start') {
-    await sendMessage(chatId, '🤖 Ask me anything about your records — e.g. "how much is in pipeline?", "what\'s due this week?", "show me open leads".')
+  // 2) Work out the message text. A voice note (or audio clip) gets transcribed
+  // first, then flows through exactly like a typed message.
+  let text = msg.text?.trim() || ''
+  const voiceFileId = msg.voice?.file_id || msg.audio?.file_id
+  if (!text && voiceFileId) {
+    const transcript = await transcribeTelegramVoice(voiceFileId)
+    if (!transcript) {
+      await sendMessage(chatId, "🎤 Sorry, I couldn't make out that voice note. Try again, or just type it.")
+      return Response.json({ ok: true })
+    }
+    text = transcript
+    // Echo back what I heard so you can catch any mis-hearing.
+    await sendMessage(chatId, `🎤 <i>${escapeHtml(transcript)}</i>`)
+  }
+
+  if (!text) {
+    await sendMessage(chatId, "Send me a question — by text or 🎤 voice note — and I'll answer from your records.")
     return Response.json({ ok: true })
   }
 
-  // 2) Load the second brain + recent turns.
+  if (text.toLowerCase() === '/start') {
+    await sendMessage(chatId, '🤖 Ask me anything about your records — by text or 🎤 voice note. E.g. "how much is in pipeline?", "what\'s due this week?", "show me open leads".')
+    return Response.json({ ok: true })
+  }
+
+  // 3) Load the second brain + recent turns.
   const records = await getRecords()
   const recent = await loadTurns(chatId)
 
-  // 3) Ask Claude over the data. Everything in the DATA block is UNTRUSTED.
+  // 4) Ask Claude over the data. Everything in the DATA block is UNTRUSTED.
   const system =
     `You are Jarvis, a concise ops assistant. Answer ONLY from the records JSON below. ` +
     `Each record has a "category" (lead, invoice, task, post, project, contact, content) and a "meta" bag of extra fields — use them. ` +
@@ -62,14 +86,20 @@ export async function POST(req: Request) {
       model: 'claude-haiku-4-5',
       max_tokens: 1024,
       system,
-      messages: [{ role: 'user', content: msg.text }],
+      messages: [{ role: 'user', content: text }],
     })
     answer = res.content.find(c => c.type === 'text')?.text ?? answer
   } catch (e) {
     console.error('[GLCC] Claude error:', e)
   }
 
-  await appendTurn(chatId, msg.text, answer)
+  await appendTurn(chatId, text, answer)
   await sendMessage(chatId, answer)
   return Response.json({ ok: true })
+}
+
+// Telegram parses our replies as HTML, so a transcript with &, < or > would
+// break the message — escape it before echoing back.
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
