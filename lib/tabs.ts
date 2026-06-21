@@ -10,6 +10,8 @@ export const TABS = [
   { key: 'content',   href: '/content',   label: 'Content'   },
   { key: 'agents',    href: '/agents',    label: 'Agents'    },
   { key: 'reports',   href: '/reports',   label: 'Reports'   },
+  { key: 'ads',       href: '/ads-report', label: 'Ads Report' },
+  { key: 'groupbuy',  href: '/event-group-buy', label: 'Group-Buy' },
   { key: 'admin',     href: '/admin',     label: 'Admin'     },
 ] as const
 

@@ -20,13 +20,29 @@ export async function GET(req: Request) {
   const overdue = relevant.filter(r => r.due_date! < today)
   const upcoming = relevant.filter(r => r.due_date! >= today)
 
+  // Ads Report (category 'ad'): roll up spend vs sales across all tracked days.
+  const SPEND_KEYS = ['shopee_cpas', 'lazada_cpas', 'awa', 'lead_to_pm']
+  const SALES_KEYS = ['fb_new', 'fb_repeat', 'insta_new', 'insta_repeat', 'shopee_sales', 'lazada_sales', 'other_sales']
+  const sumKeys = (r: typeof rows[number], keys: string[]) => keys.reduce((s, k) => s + Number(r.meta?.[k] || 0), 0)
+  const adDays = rows.filter(r => r.category === 'ad')
+  const adSpend = adDays.reduce((s, r) => s + sumKeys(r, SPEND_KEYS), 0)
+  const adSales = adDays.reduce((s, r) => s + sumKeys(r, SALES_KEYS), 0)
+  const roas = adSpend ? adSales / adSpend : 0
+
+  // Group-buy events (category 'groupbuy') closing within 3 days and still open.
+  const gbClosing = rows.filter(r =>
+    r.category === 'groupbuy' && ['active', 'open'].includes(r.status) &&
+    r.due_date && r.due_date >= today && r.due_date <= soon)
+
   const msg =
     `☀️ <b>Daily digest</b>\n` +
     `📦 ${rows.length} records · ${open} open\n` +
     `💰 Pipeline: <b>${rm(pipeline)}</b>\n` +
+    (adDays.length ? `📣 Ads: spend ${rm(adSpend)} · sales ${rm(adSales)} · ROAS <b>${roas.toFixed(2)}x</b>\n` : '') +
     (overdue.length ? `\n🔴 <b>Overdue:</b>\n` + overdue.map(r => `• ${r.title} (${r.due_date})`).join('\n') : '') +
     (upcoming.length ? `\n⏳ <b>Due in 3 days:</b>\n` + upcoming.map(r => `• ${r.title} (${r.due_date})`).join('\n') : '') +
-    (!overdue.length && !upcoming.length ? `\n✅ Nothing due in the next 3 days.` : '')
+    (gbClosing.length ? `\n🛒 <b>Group-buys closing soon:</b>\n` + gbClosing.map(r => `• ${r.title} (${r.due_date})`).join('\n') : '') +
+    (!overdue.length && !upcoming.length && !gbClosing.length ? `\n✅ Nothing due in the next 3 days.` : '')
 
   const owner = process.env.OWNER_CHAT_ID?.trim()
   if (owner) await sendMessage(owner, msg)
