@@ -3,7 +3,7 @@ import { simpleParser } from 'mailparser'
 import Anthropic from '@anthropic-ai/sdk'
 import { sendMessage } from '@/lib/telegram'
 
-// 8am Vercel cron: reads your UNREAD Gmail from the last 24h, asks Claude for a
+// 10am Malaysia (02:00 UTC) Vercel cron: reads your UNREAD Gmail from the last 24h, asks Claude for a
 // short "what to do today" brief, and Telegram-pings the owner.
 //
 // Secured with CRON_SECRET — Vercel Cron sends it as a Bearer token, and a manual
