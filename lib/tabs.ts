@@ -8,6 +8,7 @@ export const TABS = [
   { key: 'projects',  href: '/projects',  label: 'Projects'  },
   { key: 'contacts',  href: '/contacts',  label: 'Contacts'  },
   { key: 'content',   href: '/content',   label: 'Content'   },
+  { key: 'salesman',  href: '/salesman',  label: 'SalesMan'  },
   { key: 'agents',    href: '/agents',    label: 'Agents'    },
   { key: 'reports',   href: '/reports',   label: 'Reports'   },
 ] as const
