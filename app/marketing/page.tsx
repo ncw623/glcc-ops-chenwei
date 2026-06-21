@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { SpendVsSalesLine, DailyBars, ChannelTotals } from './Charts'
 
 export const dynamic = 'force-dynamic'
 
@@ -71,6 +72,18 @@ export default async function Marketing() {
     )
   }
 
+  // --- Chart series for the dashboard view ---
+  const dates = data.map(r => 'May ' + new Date(r.date).getDate())
+  const spendArr = data.map(adSpend)
+  const salesArr = data.map(totalSales)
+  const roasArr = data.map(r => { const a = adSpend(r); return a > 0 ? Number((totalSales(r) / a).toFixed(2)) : 0 })
+  const channels = [
+    { label: 'LEAD to PM', value: data.reduce((s, r) => s + Number(r.lead_to_pm_ad_cost), 0) },
+    { label: 'Shopee CPAS', value: data.reduce((s, r) => s + Number(r.shopee_cpas_ads_cost), 0) },
+    { label: 'Lazada CPAS', value: data.reduce((s, r) => s + Number(r.lazada_cpas_ads_cost), 0) },
+    { label: 'Awa', value: data.reduce((s, r) => s + Number(r.awa_ads_cost), 0) },
+  ].sort((a, b) => b.value - a.value)
+
   return (
     <>
       <h1 className="ph">Marketing</h1>
@@ -81,6 +94,12 @@ export default async function Marketing() {
           <div className="stat" key={l}><p className="l">{l}</p><p className="v">{v}</p></div>
         ))}
       </div>
+
+      <h2 className="ph" style={{ fontSize: 16, marginTop: 26 }}>Dashboard view</h2>
+      <p className="cap">Visual trends from the daily tracker</p>
+      <SpendVsSalesLine dates={dates} spend={spendArr} sales={salesArr} />
+      <DailyBars dates={dates} values={roasArr} title="📊 Daily ROAS" subtitle="Sales ÷ ad spend, per day" suffix="x" />
+      <ChannelTotals items={channels} />
 
       <div className="mkt-scroll">
         <table className="tbl mkt-tbl">
