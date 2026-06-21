@@ -37,7 +37,9 @@ export async function transcribeTelegramVoice(fileId: string): Promise<string | 
   // 3) Send to Groq Whisper (OpenAI-compatible multipart endpoint).
   // whisper-large-v3-turbo is fast and accurate; response_format=text keeps it tiny.
   const form = new FormData()
-  form.append('file', new Blob([audioBuf], { type: 'audio/ogg' }), 'voice.oga')
+  // Filename extension matters: Groq validates by it and accepts "ogg" but NOT
+  // Telegram's native ".oga", so we always label voice notes "voice.ogg".
+  form.append('file', new Blob([audioBuf], { type: 'audio/ogg' }), 'voice.ogg')
   form.append('model', 'whisper-large-v3-turbo')
   form.append('response_format', 'text')
 
