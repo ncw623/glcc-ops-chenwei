@@ -1,12 +1,10 @@
 import { getRecords, m } from '@/lib/records'
 import Empty from '@/app/_components/Empty'
-import { requireTab } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
 // Social content calendar. category === 'content'. Extra fields live in `meta`.
 export default async function Content() {
-  await requireTab('content')
   const all = await getRecords()
   const rows = all.filter(r => r.category === 'content')
   const drafts = rows.filter(r => r.status === 'draft').length

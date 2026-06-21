@@ -1,5 +1,4 @@
 import Office from './Office'
-import { requireTab } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -7,7 +6,6 @@ export const dynamic = 'force-dynamic'
 // + the "run" button live in the 'use client' <Office> child, which talks to the
 // server ONLY through /api/jarvis-oyen — it never imports lib/supabase.
 export default async function Agents() {
-  await requireTab('agents')
   return (
     <>
       <h1 className="ph">AI Agents</h1>

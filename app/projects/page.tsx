@@ -1,12 +1,10 @@
 import { getRecords, rm, m } from '@/lib/records'
 import Empty from '@/app/_components/Empty'
-import { requireTab } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
 // Active client work. category === 'project'. Extra fields live in `meta`.
 export default async function Projects() {
-  await requireTab('projects')
   const all = await getRecords()
   const rows = all.filter(r => r.category === 'project')
   const active = rows.filter(r => r.status === 'active').length

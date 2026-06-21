@@ -8233,5 +8233,105 @@ if(document.readyState!=='loading') setTimeout(renderSankey,100);
 </script>
 
 
+<!-- ===== GLCC server sync: persist & share imported data across devices ===== -->
+<script>
+(function () {
+  'use strict';
+  var ENDPOINT = '/api/reports-state';
+  var ready = false;       // don't save until we've loaded server data once
+  var hydrating = false;   // don't save while applying server data
+  var saveTimer = null;
+
+  // state.tbCY / tbLY are Maps (with a _dataCols prop) — encode/decode them for JSON.
+  function replacer(key, value) {
+    if (value instanceof Map) {
+      var entries = [];
+      value.forEach(function (v, k) { entries.push([k, v]); });
+      return { __map: true, entries: entries, dataCols: value._dataCols || null };
+    }
+    return value;
+  }
+  function revive(o) {
+    if (o && typeof o === 'object') {
+      if (o.__map) {
+        var m = new Map();
+        (o.entries || []).forEach(function (p) { m.set(p[0], revive(p[1])); });
+        if (o.dataCols) m._dataCols = o.dataCols;
+        return m;
+      }
+      if (Array.isArray(o)) return o.map(revive);
+      var out = {};
+      for (var k in o) { if (Object.prototype.hasOwnProperty.call(o, k)) out[k] = revive(o[k]); }
+      return out;
+    }
+    return o;
+  }
+
+  // Capture the ORIGINAL before wrapping, so building a snapshot never re-triggers a save.
+  var rawSnapshot = (typeof snapshotEntityData === 'function') ? snapshotEntityData : null;
+
+  function buildSnapshot() {
+    try {
+      if (rawSnapshot && state && state.entities && state.entities.activeId) {
+        rawSnapshot(state.entities.activeId); // flush current edits into entityData
+      }
+    } catch (e) {}
+    return { v: 1, entities: state.entities, entityData: state.entityData };
+  }
+
+  function scheduleSave() {
+    if (!ready || hydrating) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(doSave, 1200);
+  }
+
+  function doSave() {
+    try {
+      var snap = buildSnapshot();
+      var body = '{"data":' + JSON.stringify(snap, replacer) + '}';
+      fetch(ENDPOINT, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: body })
+        .catch(function () {});
+    } catch (e) { /* never break the app */ }
+  }
+
+  // Any data change (import / edit / entity switch) calls snapshotEntityData — wrap it.
+  if (rawSnapshot) {
+    snapshotEntityData = function () {
+      var r = rawSnapshot.apply(this, arguments);
+      scheduleSave();
+      return r;
+    };
+  }
+
+  function hydrate() {
+    fetch(ENDPOINT, { method: 'GET' })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res && res.ok && res.data) {
+          var data = revive(res.data);
+          if (data && data.entityData) {
+            hydrating = true;
+            try {
+              if (data.entities) state.entities = data.entities;
+              state.entityData = data.entityData;
+              if (typeof refreshEntityAlias === 'function') refreshEntityAlias();
+              if (typeof renderEntityList === 'function') renderEntityList();
+              var activeId = state.entities && state.entities.activeId;
+              if (activeId && typeof loadEntityData === 'function') loadEntityData(activeId);
+              if (typeof setStatus === 'function') setStatus('Loaded saved data from server.', 'ok');
+            } catch (e) { console.warn('[GLCC] reports hydrate error', e); }
+            hydrating = false;
+          }
+        }
+      })
+      .catch(function () { /* offline / first run — ignore */ })
+      .then(function () { ready = true; }); // only allow saves after the first load
+  }
+
+  if (document.readyState === 'complete') setTimeout(hydrate, 600);
+  else window.addEventListener('load', function () { setTimeout(hydrate, 600); });
+})();
+</script>
+
 </body>
 </html>

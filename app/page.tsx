@@ -1,11 +1,9 @@
 import { getRecords, rm, STILL_OPEN, DEAL_CATS, NEW_CATS } from '@/lib/records'
 import Empty from '@/app/_components/Empty'
-import { requireTab } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Dashboard() {
-  await requireTab('dashboard')
   const rows = await getRecords()
   const open = rows.filter(r => STILL_OPEN.includes(r.status) && !NEW_CATS.includes(r.category ?? '')).length
   const pipeline = rows
