@@ -9,6 +9,7 @@ export const TABS = [
   { key: 'contacts',  href: '/contacts',  label: 'Contacts'  },
   { key: 'content',   href: '/content',   label: 'Content'   },
   { key: 'agents',    href: '/agents',    label: 'Agents'    },
+  { key: 'reports',   href: '/reports',   label: 'Reports'   },
 ] as const
 
 export type TabKey = (typeof TABS)[number]['key']

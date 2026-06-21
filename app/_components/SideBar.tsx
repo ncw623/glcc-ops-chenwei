@@ -58,7 +58,7 @@ export default function SideBar({
         <div className="brand"><span className="logo" aria-hidden="true" /> Your AI HQ</div>
         <Nav allowedTabs={allowedTabs} onNavigate={() => setOpen(false)} />
         <div className="side-foot">
-          <p className="hint">One <code>records</code> table behind all 8 tabs.</p>
+          <p className="hint">One <code>records</code> table behind your data tabs.</p>
           <div className="acct">
             <span className="acct-who" title={email}>
               {role === 'admin' ? '★ ' : ''}{email}

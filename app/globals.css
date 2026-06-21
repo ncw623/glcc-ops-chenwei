@@ -326,3 +326,22 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0
 @media (max-width: 768px) {
   .signout { min-height: 44px; }
 }
+
+/* ============================================================
+   EMBED — full-page apps shown in an isolated iframe (Reports).
+   The iframe fills the content area; the embedded app keeps its
+   own theme/scroll, so we just give it height and trim the chrome.
+   ============================================================ */
+.embed-wrap { width: 100%; margin: -8px 0; }
+.embed-frame {
+  width: 100%;
+  height: calc(100vh - 50px);
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  display: block;
+}
+@media (max-width: 768px) {
+  .embed-wrap { margin: -6px 0; }
+  .embed-frame { height: calc(100dvh - 110px); border-radius: 8px; }
+}
