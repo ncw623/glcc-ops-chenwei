@@ -21,7 +21,7 @@ if (!url || !key) {
   process.exit(1)
 }
 
-const ALL = ['dashboard', 'pipeline', 'money', 'tasks', 'projects', 'contacts', 'content', 'agents']
+const ALL = ['dashboard', 'pipeline', 'money', 'tasks', 'projects', 'contacts', 'content', 'agents', 'reports']
 const MEMBER_DEFAULT = ['dashboard', 'pipeline', 'tasks', 'projects', 'contacts', 'content']
 const tabs = role === 'admin'
   ? ALL

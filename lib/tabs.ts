@@ -10,7 +10,12 @@ export const TABS = [
   { key: 'content',   href: '/content',   label: 'Content'   },
   { key: 'agents',    href: '/agents',    label: 'Agents'    },
   { key: 'reports',   href: '/reports',   label: 'Reports'   },
+  { key: 'admin',     href: '/admin',     label: 'Admin'     },
 ] as const
+
+// The data/feature tabs an admin can grant to a member. Excludes 'admin' itself —
+// admin access is a role, set via the user:add script, not a per-tab toggle.
+export const GRANTABLE_TABS = TABS.filter(t => t.key !== 'admin')
 
 export type TabKey = (typeof TABS)[number]['key']
 

@@ -79,3 +79,11 @@ export async function requireTab(tab: string) {
   }
   return { user, profile }
 }
+
+// Admin-only gate. Role (not allowed_tabs) is the check — members can never reach
+// the team-management page even if 'admin' somehow ended up in their tabs.
+export async function requireAdmin() {
+  const { user, profile } = await requireUser()
+  if (!profile || profile.role !== 'admin') redirect('/')
+  return { user, profile }
+}
